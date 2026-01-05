@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeroGIT - Starlight Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* --- 核心动画与变量 --- */
+        :root {
+            --glow-color: rgba(255, 255, 255, 0.8);
+        }
+
+        body {
+            background-color: #050507; /* 深空灰黑 */
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* 1. 星空背景 (Stars) */
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite;
+            opacity: 0;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: var(--opacity); transform: scale(1); box-shadow: 0 0 4px rgba(255, 255, 255, 0.8); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        /* 2. 氛围光晕 (Ambient Glow Orbs) */
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            animation: float-orb 10s infinite ease-in-out;
+        }
+        .orb-1 { top: -10%; left: 20%; width: 600px; height: 600px; background: rgba(255, 255, 255, 0.03); animation-delay: 0s; }
+        .orb-2 { bottom: -10%; right: 10%; width: 500px; height: 500px; background: rgba(200, 200, 220, 0.04); animation-delay: -5s; }
+
+        @keyframes float-orb {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -30px); }
+        }
+
+        /* 3. 高级毛玻璃卡片 (Premium Glass) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.3),
+                inset 0 0 20px rgba(255, 255, 255, 0.02);
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .glass-panel:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 0 50px rgba(255, 255, 255, 0.1),
+                inset 0 0 30px rgba(255, 255, 255, 0.05);
+        }
+
+        /* 4. 文字泛光 (Text Bloom) */
+        .text-bloom {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+        }
+        .text-subtle-bloom {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        /* 5. 按钮发光 */
+        .btn-glow {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s ease;
+        }
+        .btn-glow:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* 轮播图柔和切换 */
+        .carousel-slide {
+            opacity: 0;
+            transform: scale(1.05);
+            transition: opacity 1.5s ease, transform 2s ease;
+            filter: blur(5px) grayscale(80%);
+        }
+        .carousel-slide.active {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(0px) grayscale(20%); /* 激活时清晰 */
+        }
+
+        /* 进度条 */
+        .progress-line {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: white;
+            box-shadow: 0 0 10px white;
+            transition: width 0s;
+        }
+        .progress-line.active::after {
+            width: 100%;
+            transition: width 5s linear;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col selection:bg-white selection:text-black">
+
+    <!-- 背景层：星星与光晕 -->
+    <div id="stars-container" class="fixed inset-0 z-0 pointer-events-none"></div>
+    <div class="glow-orb orb-1 pointer-events-none"></div>
+    <div class="glow-orb orb-2 pointer-events-none"></div>
+
+    <!-- 顶部悬浮导航 (Frosted Glass Pill) -->
+    <nav class="fixed top-8 left-0 right-0 z-50 flex justify-center">
+        <div class="glass-panel rounded-full px-8 py-4 flex items-center gap-10">
+            <!-- Logo -->
+            <div class="flex items-center gap-2 group cursor-pointer">
+                <div class="w-2 h-2 rounded-full bg-white shadow-[0_0_10px_white] group-hover:scale-125 transition"></div>
+                <span class="font-light tracking-[0.2em] text-sm text-white">ZEROGIT</span>
+            </div>
+
+            <!-- Links -->
+            <div class="hidden md:flex gap-8 text-xs font-light text-gray-400 tracking-widest">
+                <a href="docs.html" class="hover:text-white hover:text-bloom transition-colors">DOCS</a>
+                <a href="studio.html" class="hover:text-white hover:text-bloom transition-colors">STUDIO</a>
+                <!-- 修改处：顶部导航链接跳转 -->
+                <a href="https://qq.com" target="_blank" class="hover:text-white hover:text-bloom transition-colors">DOWNLOAD</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主视觉 -->
+    <main class="relative z-10 flex-grow flex items-center justify-center pt-32 pb-12 max-w-7xl mx-auto px-6 w-full h-screen">
+        <div class="flex flex-col lg:flex-row items-center w-full gap-20">
+            
+            <!-- 左侧：空灵文字 -->
+            <div class="w-full lg:w-5/12 space-y-10 text-center lg:text-left">
+                <!-- 极简标签 -->
+                <div class="inline-block border border-white/20 rounded-full px-4 py-1 backdrop-blur-sm">
+                    <span class="text-[10px] text-gray-300 tracking-[0.3em] uppercase">System v4.0</span>
+                </div>
+
+                <!-- 标题 -->
+                <div>
+                    <h1 class="text-6xl sm:text-7xl lg:text-8xl font-thin tracking-tighter text-white mb-2 text-bloom">
+                        Pure<br>
+                        <span class="font-bold">Focus</span>
+                    </h1>
+                    <div class="h-[1px] w-24 bg-gradient-to-r from-white/50 to-transparent my-6 mx-auto lg:mx-0"></div>
+                    <p class="text-gray-400 font-light text-lg leading-relaxed max-w-md mx-auto lg:mx-0">
+                        沉浸于星海般的宁静。
+                        <br>ZeroGIT 为您重塑渲染的边界。
+                    </p>
+                </div>
+
+                <!-- 发光按钮组 -->
+                <div class="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start">
+                    <!-- 修改处：主按钮跳转 -->
+                    <a href="https://qq.com" target="_blank" class="btn-glow px-10 py-4 rounded-full text-sm font-medium tracking-widest text-white group">
+                        <span class="group-hover:text-bloom transition">Download</span>
+                    </a>
+                    
+                    <a href="#" class="px-6 py-4 rounded-full text-sm font-light text-gray-500 hover:text-white transition-colors flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                        Watch Showreel
+                    </a>
+                </div>
+            </div>
+
+            <!-- 右侧：梦幻视窗 -->
+            <div class="w-full lg:w-7/12 relative flex justify-center lg:justify-end">
+                
+                <!-- 背后的大光晕 (Back Glow) -->
+                <div class="absolute inset-0 bg-white/5 blur-[80px] rounded-full scale-75 animate-pulse"></div>
+
+                <!-- 3D 视差玻璃卡片 -->
+                <div id="tilt-card" class="glass-panel relative w-full aspect-[16/10] max-w-2xl rounded-2xl overflow-hidden p-2 group shadow-2xl">
+                    
+                    <!-- 内部图片容器 (带圆角) -->
+                    <div class="w-full h-full rounded-xl overflow-hidden relative bg-black/50">
+                        <!-- Slide 1 -->
+                        <div class="carousel-slide active absolute inset-0">
+                            <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1200&auto=format&fit=crop" class="w-full h-full object-cover opacity-90" alt="Space">
+                            <div class="absolute bottom-8 left-8 z-20">
+                                <h3 class="text-3xl font-light text-white text-bloom tracking-wide">Nebula</h3>
+                                <p class="text-xs text-gray-300 font-light tracking-widest mt-1">RAY TRACING CORE</p>
+                            </div>
+                        </div>
+                        <!-- Slide 2 -->
+                        <div class="carousel-slide absolute inset-0">
+                            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop" class="w-full h-full object-cover opacity-90" alt="Earth">
+                            <div class="absolute bottom-8 left-8 z-20">
+                                <h3 class="text-3xl font-light text-white text-bloom tracking-wide">Horizon</h3>
+                                <p class="text-xs text-gray-300 font-light tracking-widest mt-1">GLOBAL ILLUMINATION</p>
+                            </div>
+                        </div>
+                        <!-- Slide 3 -->
+                        <div class="carousel-slide absolute inset-0">
+                            <img src="https://images.unsplash.com/photo-1614728853970-3022608ea429?q=80&w=1200&auto=format&fit=crop" class="w-full h-full object-cover opacity-90" alt="Abstract">
+                            <div class="absolute bottom-8 left-8 z-20">
+                                <h3 class="text-3xl font-light text-white text-bloom tracking-wide">Prism</h3>
+                                <p class="text-xs text-gray-300 font-light tracking-widest mt-1">LIGHT REFRACTION</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 极简进度条 -->
+                    <div class="absolute bottom-0 left-0 w-full flex">
+                        <div class="flex-1 progress-line active"></div>
+                        <div class="flex-1 progress-line"></div>
+                        <div class="flex-1 progress-line"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部微小信息 -->
+    <footer class="fixed bottom-6 w-full text-center pointer-events-none">
+        <p class="text-[10px] text-gray-600 font-light tracking-[0.5em] uppercase opacity-50">
+            Designed for Silence
+        </p>
+    </footer>
+
+    <script>
+        // 1. 生成星空 (Star Generation)
+        const starContainer = document.getElementById('stars-container');
+        const starCount = 60; // 星星数量
+
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            
+            // 随机位置
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            
+            // 随机大小
+            const size = Math.random() * 2 + 1; // 1px ~ 3px
+            
+            // 随机动画时长和延迟
+            const duration = Math.random() * 3 + 2; // 2s ~ 5s
+            const delay = Math.random() * 5;
+            const opacity = Math.random() * 0.7 + 0.3;
+
+            star.style.left = `${x}%`;
+            star.style.top = `${y}%`;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.setProperty('--duration', `${duration}s`);
+            star.style.setProperty('--opacity', opacity);
+            star.style.animationDelay = `${delay}s`;
+
+            starContainer.appendChild(star);
+        }
+
+        // 2. 3D 视差柔和效果 (Smooth Parallax)
+        const card = document.getElementById('tilt-card');
+        
+        document.addEventListener('mousemove', (e) => {
+            if (window.innerWidth > 1024) {
+                const x = (window.innerWidth / 2 - e.clientX) / 50;
+                const y = (window.innerHeight / 2 - e.clientY) / 50;
+                
+                // 增加一点 transition 使得移动更像在水里一样柔和
+                card.style.transform = `perspective(1000px) rotateY(${x}deg) rotateX(${-y}deg)`;
+            }
+        });
+
+        // 3. 轮播逻辑
+        const slides = document.querySelectorAll('.carousel-slide');
+        const lines = document.querySelectorAll('.progress-line');
+        let index = 0;
+
+        function nextSlide() {
+            slides[index].classList.remove('active');
+            lines[index].classList.remove('active');
+            
+            index = (index + 1) % slides.length;
+            
+            slides[index].classList.add('active');
+            lines[index].classList.add('active');
+        }
+
+        setInterval(nextSlide, 5000);
+    </script>
+</body>
+</html>
